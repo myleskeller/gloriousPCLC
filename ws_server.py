@@ -6,24 +6,27 @@ from simple_websocket_server import WebSocket, WebSocketServer
 import socket
 
 
+data_delim = ": "
+
+
 class Server(WebSocket):
     def handle(self):
+        print((str(self.address[1]) + data_delim + self.data))
         for client in clients:
             if client != self:
-                client.send_message(str(self.address[0]) + ":\t" + self.data) #! breaks clients if i change index to 1
+                client.send_message(str(self.address[1]) + data_delim + self.data)
+
     def connected(self):
-        # print(self.address, "connected")
-        print(self.address[0] + ":\tconnected") #! breaks clients if i change index to 1
+        print(str(self.address[1]) + ": connected")
         for client in clients:
-            client.send_message(self.address[0] + ":\tconnected") #! breaks clients if i change index to 1
+            client.send_message(str(self.address[1]) + ": connected")
         clients.append(self)
 
     def handle_close(self):
         clients.remove(self)
-        # print(self.address, "closed")
-        print(self.address[0] + ":\tclosed") #! breaks clients if i change index to 1
+        print(str(self.address[0]) + ": closed")
         for client in clients:
-            client.send_message(self.address[0] + ":\tdisconnected") #! breaks clients if i change index to 1
+            client.send_message(str(self.address[0]) + ": disconnected")
 
 
 if __name__ == "__main__":

@@ -4,6 +4,9 @@ import time
 import rel
 from optparse import OptionParser
 
+tick_command = "#"
+data_delim = ": "
+
 
 if __name__ == "__main__":
     parser = OptionParser(usage="usage: %prog [options]", version="%prog 1.0")
@@ -29,8 +32,25 @@ if __name__ == "__main__":
 url = "ws://" + str(options.host) + ":" + str(options.port)
 
 
+def runSimulation():
+    #! where the guts of the simulation go ------------------------------------
+    print("*simulating simulation*")
+    return 42
+    #! ------------------------------------------------------------------------
+
+
+def sendResult(ws, result):
+    print("sent result", result, "on websocket.")
+    ws.send(str(result)) # casting to string is apparently important
+
+
 def on_message(ws, message):
     print(message)
+    if data_delim + tick_command in message:
+        #! this happens when a device sends out the tick command---------------
+        result = runSimulation()
+        sendResult(ws, result)
+        #! --------------------------------------------------------------------
 
 
 def on_error(ws, error):
@@ -38,15 +58,15 @@ def on_error(ws, error):
 
 
 def on_close(ws, close_status_code, close_msg):
-    print("disconnected")
+    print("disconnected from "+str(options.host))
 
 
 def on_open(ws):
-    print("connected")
+    print("connected to "+str(options.host))
 
 
 if __name__ == "__main__":
-    # websocket.enableTrace(True)
+    # websocket.enableTrace(True) # for debugging raw websocket data
     ws = websocket.WebSocketApp(
         url,
         on_open=on_open,
@@ -58,6 +78,8 @@ if __name__ == "__main__":
     ws.run_forever(
         dispatcher=rel, reconnect=5
     )  # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
+
+    print("awaiting tick command '" + tick_command + "'...")
 
     rel.signal(2, rel.abort)  # Keyboard Interrupt
     rel.dispatch()
