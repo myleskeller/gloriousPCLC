@@ -7,15 +7,16 @@ import socket
 import csv
 
 
-filename = "out.csv"  # TODO: make into option argument
-pclc_id = "pclc" # TODO: make into option argument
-threshold = 10 # TODO: make into option argument
-# data_delim = ": "
+filename = sys.argv[sys.argv.index(next(filter(lambda x: "--filename" in x, sys.argv))) + 1]  
+pclc_id = sys.argv[sys.argv.index(next(filter(lambda x: "--pclc_id" in x, sys.argv))) + 1]  
+threshold = int(sys.argv[sys.argv.index(next(filter(lambda x: "--threshold" in x, sys.argv))) + 1])
+num_clients = int(sys.argv[sys.argv.index(next(filter(lambda x: "--clients" in x, sys.argv))) + 1])
+
 tick_command = "#"
 tick_complete = False
 awaiting_responses = False
 all_clients_connected = False
-num_clients = 3 #try to remove
+
 client_ids = {}
 row = []
 value = []
@@ -197,6 +198,30 @@ if __name__ == "__main__":
         action="store",
         dest="num_clients",
         help="expected number of clients (3)",
+    )
+    parser.add_option(
+        "--threshold",
+        default=10,
+        type="int",
+        action="store",
+        dest="threshold",
+        help="threshold of difference between values to trigger alarm (10)",
+    )
+    parser.add_option(
+        "--filename",
+        default="out.csv",
+        type="string",
+        action="store",
+        dest="filename",
+        help="name of file saved after exiting ('out.csv')",
+    )
+    parser.add_option(
+        "--pclc_id",
+        default="out.csv",
+        type="string",
+        action="store",
+        dest="pclc_id",
+        help="unique id assigned to device being evaluated ('pclc')",
     )
 
     (options, args) = parser.parse_args()
