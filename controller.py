@@ -41,15 +41,15 @@ j = 0
 
 # default patient. adult average parameters taken from the PADOVA paper page 31
 class PatientInfo:
-    weight = 69.7               # kg
-    insulin = 0.61              # U/day/kg
-    CHO_ratio = 15.9            # g/U
-    correction = 1700/insulin
-    fasting_glucose = 119.6     # mg/dl
-
+    weight = 69.7                           # kg
+    daily_insulin = 0.61                    # U/day/kg
+    carbohydrate_ratio = 15.9               # g/U
+    correction_factor = 1700/daily_insulin
+    target_glucose = 119.6                  # mg/dl
 
 def main():
     # init patient object with values
+    lolo = PatientInfo()
 
     # open csv file
     filename = open("gluread.csv", "r")                          
@@ -59,7 +59,6 @@ def main():
     glucose_flt = []
     glucose_time_str = []
     glucose_time_flt = []
-
 
     # GLUCOSE LIST FROM CSV
     for col in csv.DictReader(filename):
@@ -83,7 +82,7 @@ def main():
         j = j + 1
     
 # get equations from uva padova
-def get_insulin(glucose):
+def get_insulin(glucose, carbohydrate,time, patient):
 
     """
     Variables from PADOVA and Simglucose
@@ -94,7 +93,7 @@ def get_insulin(glucose):
     current glucose = from dataset
     target glucose = 120mg/dl
     patient correction factor = 1700/total daily insulin
-    carb ratio = ingested carb / optimal bolus
+    carb ratio = ingested carb / optimal bolus?
 
     bolus = ((carbohydrate / carbohydrate_ratio) + (current_glucose - target_glucose) / correction_factor) / sample_time
     
@@ -102,8 +101,10 @@ def get_insulin(glucose):
         - the dataset doesnt have carbs. find whether paper includes info related to carb consumption
         - calculate sample time based on column b. make another list and compounded time
     """
+    
+    bolus = ((carbohydrate / carbohydrate_ratio) + (current_glucose - target_glucose) / correction_factor) / sample_time
 
-    return glucose 
+    return bolus 
 
 if __name__ == "__main__":
     main()
