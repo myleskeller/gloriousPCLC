@@ -41,11 +41,11 @@ class Server(WebSocket):
             client_ids[addr1] = unique_id
             # if everyone has finally connected, change flags
             if len(client_ids) == num_clients:
-                print("everyone connected: ", client_ids)
-                input("press [Enter] to broadcast initial tick")
+                print("\neveryone connected: ", client_ids,"")
+                input("press [Enter] to broadcast initial tick..")
                 all_clients_connected = True
                 # broadcast tick
-                print("broadcasting tick")
+                print("\nbroadcasting tick")
                 for client in clients:
                     client.send_message(tick_command)
                 awaiting_responses = True
@@ -53,19 +53,17 @@ class Server(WebSocket):
         # if everyone is connected and a tick just finished
         elif all_clients_connected and not awaiting_responses and tick_complete:
             # broadcast tick
-            print("broadcasting tick")
+            print("\nbroadcasting tick")
             for client in clients:
-                print("broadcasted")
                 client.send_message(tick_command)
             # clear values of client_values
-            print("finished")
             awaiting_responses = True
             tick_complete = False
 
         # if everyone is connected and we are awaiting responses,
         elif all_clients_connected and awaiting_responses and not tick_complete:
             # collect response
-            print("collecting response")
+            # print("collecting response")
             addr1 = str(self.address[1])
             result = self.data
             value = (addr1, result)
@@ -74,14 +72,13 @@ class Server(WebSocket):
         if value != []:
             row.append(value)
             if len(row) == num_clients:
-                print("all responses received.")
+                print("all responses received")
                 row.append(None)
                 data.append(row)
-                print("storing ", row)
                 # clear row
                 row = []
                 # broadcast tick
-                print("broadcasting tick")
+                print("\nbroadcasting tick")
                 for client in clients:
                     client.send_message(tick_command)
                 awaiting_responses = True
@@ -110,15 +107,10 @@ def writeData2CSV(filename, client_ids, data):
     for _client in _client_ids:
         fields.append(translateID(_client))
     fields.append("alarm") 
-    print("fields: ",fields) #! verified correct
+    print("\nsaving data to .csv")
+    print(fields) 
 
     client_addr1s = [key for key in client_ids.keys() if client_ids[key] in fields]
-    # client_addr1s = [client_ids[key] for key in fields]
-    # client_addr1s = list(client_ids.values())+['alarm']
-    print("client_addr1s: ", client_addr1s)
-
-    print("data", data)
-
     # Create a list to hold the new values
     new_data = []
     # Loop through each row in the data
@@ -138,14 +130,14 @@ def writeData2CSV(filename, client_ids, data):
             if index is not None:
                 new_row.append(row[index][1])
         # Add the boolean value at the end of the row
-        # new_row.append(row[-1])
-        print(row)
         new_row.append(checkForAlarm(row[:-1]))
         # Add the new row to the new data list
         new_data.append(new_row)
     # Print the new data structure
     for line in new_data:
         print(line)
+    print()
+
     # writing to csv file
     with open(filename, "w", newline='') as csvfile:
         csvwriter = csv.writer(csvfile)  # creating a csv writer object
@@ -154,7 +146,6 @@ def writeData2CSV(filename, client_ids, data):
 
 
 def checkForAlarm(row):
-    print("comparing",row)
     pclc_val = None    
     # Find the value of the pair with id `pclc_id`
     for pair in row:
@@ -229,7 +220,7 @@ if __name__ == "__main__":
     clients = []
 
     server = WebSocketServer(options.host, options.port, Server)
-    print("started websocket server on", options.host)
+    print("started websocket server on", options.host,"\n")
     if str(options.host) in {"localhost", "127.0.0.1"}:
         print("remote ip is", socket.gethostbyname(socket.gethostname()))
 
