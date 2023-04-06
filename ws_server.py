@@ -153,24 +153,23 @@ def writeData2CSV(filename, client_ids, data):
 
 
 def checkForAlarm(row):
-    #! logic to check if value is out of threshold ----------------------------
-    # print("comparing",row)
-    # pclc_val = None    
-    # # Find the value of the pair with id "pclc_id"
-    # for pair in row:
-    #     if pair[0] == pclc_id:
-    #         pclc_val = float(pair[1])
-    #         break
-    # # Check if the difference between pclc_val and any other value is greater than 10
-    # for pair in row:
-    #     if pair[0] != pclc_id:
-    #         # try:
-    #             if abs(float(pair[1]) - pclc_val) > threshold:
-    #                 return True
-    #         # except TypeError:
-    #         #     print("Error: pclc device id not found in clients list")
+    print("comparing",row)
+    pclc_val = None    
+    # Find the value of the pair with id `pclc_id`
+    for pair in row:
+        if translateID(pair[0]) == pclc_id:
+            pclc_val = float(pair[1])
+            break
+    # Check if the difference between pclc_val and any other value is greater than 10
+    for pair in row:
+        if pair[0] != pclc_id:
+            try:
+                if abs(float(pair[1]) - pclc_val) > threshold:
+                    return True
+            # it's going to freak out if one of the device id's isn't `pclc_id`
+            except TypeError:
+                print("Error: pclc device id not found in clients list")
     return False
-    #! ------------------------------------------------------------------------
 
 
 if __name__ == "__main__":
