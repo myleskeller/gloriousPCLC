@@ -3,9 +3,12 @@ import _thread
 import time
 import rel
 from optparse import OptionParser
+import random
 
 tick_command = "#"
-data_delim = ": "
+id_command = "!"
+# data_delim = ": "
+connected = False
 
 
 if __name__ == "__main__":
@@ -26,6 +29,14 @@ if __name__ == "__main__":
         dest="host",
         help="hostname/ip (127.0.0.1)",
     )
+    parser.add_option(
+        "--id",
+        default="client",
+        type="string",
+        action="store",
+        dest="id",
+        help="unique id (client)",
+    )
 
     (options, args) = parser.parse_args()
 
@@ -34,24 +45,24 @@ url = "ws://" + str(options.host) + ":" + str(options.port)
 
 def runSimulation():
     #! where the guts of the simulation go ------------------------------------
-    print("*simulating simulation*")
-    return 42
+    print("running simulation.")
+    time.sleep(5)
+    return random.randint(1, 25)
+
     #! ------------------------------------------------------------------------
 
 
 def sendResult(ws, result):
     print("sent result", result, "on websocket.")
-    ws.send(str(result)) # casting to string is apparently important
+    ws.send(str(result)) # casting to string is really important, apparently
 
 
 def on_message(ws, message):
     print(message)
-    if data_delim + tick_command in message:
-        #! this happens when a device sends out the tick command---------------
+    if message == tick_command:
         result = runSimulation()
         sendResult(ws, result)
-        #! --------------------------------------------------------------------
-
+        
 
 def on_error(ws, error):
     print("error: " + str(error))
@@ -59,10 +70,13 @@ def on_error(ws, error):
 
 def on_close(ws, close_status_code, close_msg):
     print("disconnected from "+str(options.host))
-
+    connected = False
 
 def on_open(ws):
     print("connected to "+str(options.host))
+    # print("sent",options.id)
+    ws.send(id_command+str(options.id)) # letting server know our unique id
+    connected = True
 
 
 if __name__ == "__main__":
@@ -79,7 +93,8 @@ if __name__ == "__main__":
         dispatcher=rel, reconnect=5
     )  # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
 
-    print("awaiting tick command '" + tick_command + "'...")
+    if connected:
+        print("awaiting tick command '" + tick_command + "'...")
 
     rel.signal(2, rel.abort)  # Keyboard Interrupt
     rel.dispatch()
