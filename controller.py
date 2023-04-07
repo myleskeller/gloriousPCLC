@@ -1,9 +1,6 @@
 import csv
+import sys
 import logging as log
-import websocket
-import _thread
-import time
-import rel
 from optparse import OptionParser
 
 """
@@ -35,55 +32,44 @@ Notes:
 
 ------------------------------------------------------------------------------------
 """
-
-# global variable to iterate through float list
-j = 0
-
 # default patient. adult average parameters taken from the PADOVA paper page 31
 class PatientInfo:
-    weight = 69.7                           # kg
-    daily_insulin = 0.61                    # U/day/kg
-    carbohydrate_ratio = 15.9               # g/U
-    correction_factor = 1700/daily_insulin
-    target_glucose = 119.6                  # mg/dl
+    weight = 69.7                               # kg
+    daily_insulin = 0.61                        # U/day/kg
+    carbohydrate_ratio = 15.9                   # g/U
+    correction_factor = 1700/daily_insulin      # 
+    target_glucose = 119.6                      # mg/dl
 
 def main():
     # init patient object with values
-    lolo = PatientInfo()
+    k = 0
+    patient = PatientInfo()
 
     # open csv file
-    filename = open("gluread.csv", "r")                          
+    filename = open("MonitorMeal.csv", "r")                          
 
-    # empty list
-    glucose_str = []                                    
-    glucose_flt = []
-    glucose_time_str = []
-    glucose_time_flt = []
+    data_str = []
+    data_flt = []
 
-    # GLUCOSE LIST FROM CSV
-    for col in csv.DictReader(filename):
-        glucose_str.append(col["glucose"])
+    # GLUCOSE LIST FROM CSV INTO STRING LIST
+    for row in csv.DictReader(filename):
+        data_str.append([row["MealSize"], row["SMBG"]])
 
-    # GLUCOSE LIST IN FLOAT VALUES
-    for i in glucose_str:
-        glucose_flt.append(float(i))
+    for row in data_str:
+        if (row[0] is not "") and (row[1] is not ""):
+            data_flt.append([float(row[0]), float(row[1])])
 
-    # TIME OF EACH GLUCOSE READING
-    for i in glucose_time_str:
-        glucose_time_str.append(col["time"])
-
-    # TIME LIST IN FLOAT VALUES
-    for i in glucose_time_str:
-        glucose_time_flt.append(float(i))
-    
     while True:
         # run forever inside websocket  function
-        insulin = get_insulin(glucose_flt[j])
-        j = j + 1
-    
-# get equations from uva padova
-def get_insulin(glucose, carbohydrate,time, patient):
+        if k > 5000:
+            sys.exit()
+        else:
+            insulin = get_insulin(data_flt[k][1], data_flt[k][0], patient)        # carb, glucose, patient object
+            print(f"Carb:{data_flt[k][1]:6.1f} g;  Glucose:{data_flt[k][0]:6.1f} mg/dl;  Insulin:{insulin:5.2f} U")
+            k = k + 1
 
+# INSULIN TO GLUCOSE EQUATION
+def get_insulin(current_glucose, carbohydrate, patient):
     """
     Variables from PADOVA and Simglucose
     
@@ -93,17 +79,11 @@ def get_insulin(glucose, carbohydrate,time, patient):
     current glucose = from dataset
     target glucose = 120mg/dl
     patient correction factor = 1700/total daily insulin
-    carb ratio = ingested carb / optimal bolus?
+    carb ratio = ingested carb / optimal bolus
 
-    bolus = ((carbohydrate / carbohydrate_ratio) + (current_glucose - target_glucose) / correction_factor) / sample_time
-    
-    @TODO: 
-        - the dataset doesnt have carbs. find whether paper includes info related to carb consumption
-        - calculate sample time based on column b. make another list and compounded time
+    bolus = ((carbohydrate / carbohydrate_ratio) + (current_glucose - target_glucose) / correction_factor)
     """
-    
-    bolus = ((carbohydrate / carbohydrate_ratio) + (current_glucose - target_glucose) / correction_factor) / sample_time
-
+    bolus = ((carbohydrate / patient.carbohydrate_ratio) + (current_glucose - patient.target_glucose) / patient.correction_factor)
     return bolus 
 
 if __name__ == "__main__":
