@@ -1,4 +1,5 @@
 import websocket
+import controller
 import _thread
 import time
 import rel
@@ -46,8 +47,9 @@ url = "ws://" + str(options.host) + ":" + str(options.port)
 def runSimulation():
     #! where the guts of the simulation go ------------------------------------
     print("running simulation.")
-    time.sleep(5)
-    return random.randint(1, 25)
+    insulin = controller.get_insulin(controller.data_flt[controller.k][1], controller.data_flt[controller.k][0], controller.patient)        # carb, glucose, patient object
+    return insulin
+
 
     #! ------------------------------------------------------------------------
 
@@ -70,6 +72,7 @@ def on_error(ws, error):
 
 def on_close(ws, close_status_code, close_msg):
     print("disconnected from "+str(options.host))
+    controller.k = 0
     connected = False
 
 def on_open(ws):
