@@ -1,5 +1,7 @@
 import local
 import cloud
+import random
+import numpy as np
 import matplotlib.pyplot as plt
 
 # declare tupple of {bolus, true_alarm_bool} for each client
@@ -7,7 +9,8 @@ cloud_response = []
 local_response = []
 false_alarm = []
 true_alarm_glucose = []
-true_alarm_insulin = []
+true_count = 0
+false_count_zero = 0
 
 # collect responses for all glucose readings in file.
 for i in range(200):
@@ -17,58 +20,43 @@ for i in range(200):
     
 """ ACCIDENTAL ISSUE: RANDOM 0 """
 
-# # make some local insulin values 0
-# for i in range(len(local_response)):
-#     if i % 20 == 0:
-#         local_response[i] = (0, local_response[i][1])
-
-# #plot true alarm when glucose is outside of range
-# for i in range(len(local_response)):
-#     if local_response[i][1] == 1:
-#         true_alarm_glucose.append(local_response[i][1])
-
-# plt.title("True Alarm: Hypoglycemia or Hyperglycemia")
-# plt.plot(true_alarm_glucose, "go")
-# plt.ylabel("Bolus")
-# plt.xlabel("Glucose Sample")
-# plt.show()
-
-# #plot true alarm when insulin sent is 0 from both cloud and local
-# for i in range(len(local_response)):
-#     if local_response[i][0] > 1 and cloud_response[i][0] > 1:
-#         true_alarm_insulin.append(local_response[i][0])
-
-# plt.title("True Alarm: No Insulin Required")
-# plt.plot(true_alarm_insulin, "go")
-# plt.ylabel("Bolus")
-# plt.xlabel("Glucose Sample")
-# plt.show()
-
-# #plot false alarm when insulin from local is 0 but cloud isnt 0
-# for i in range(len(local_response)):
-#     if local_response[i][0] == 0 and cloud_response[i][0] != 0:
-#         false_alarm.append(local_response[i][0])
-
-# plt.title("False Alarm: DOS on Local Controller")
-# plt.plot(false_alarm, "ro")
-# plt.ylabel("Bolus")
-# plt.xlabel("Glucose Sample")
-# plt.show()
-
-""" ACCIDENTAL ISSUE: BIT FLIPPED """
-
-print("CLEAN RESPONSE \n", local_response)
-
-# make some local insulin flip bits
-for i in range(len(local_response)):
-    if i % 20 == 0:
-        local_response[i] = (local.bit_flipping(local_response[i][0]), local_response[i][1])
-
-print
-print("ALTERED RESPONSE \n", local_response)
-
-#plot true alarm when glucose is outside of range
+# CHECK TRUE GLUCOSE ALARMS. SAME FOR LOCAL AND CLOUD
 for i in range(len(local_response)):
     if local_response[i][1] == 1:
         true_alarm_glucose.append(local_response[i][1])
+        true_count = true_count + 1
 
+# GENERATE FALSE ZERO ALARMS FOR LOCAL. 10 to 15% of true alarms at each patient
+# mf = (11 / 100) * true_count
+# mf = int(mf)
+# mf_count = 0
+# print(mf)
+# 
+# for i in range(0, mf):
+#     rand = random.randrange(10, 190)
+#     local_response[rand] = (0, local_response[rand][1])
+#     false_alarm.append(local_response[rand])
+#     false_count_zero = false_count_zero + 1
+
+# print("true: ", true_count)
+# print("false: ", false_count_zero)
+# print("total: ", true_count + false_count_zero)
+
+""" ACCIDENTAL ISSUE: BIT FLIPPED """
+
+mf = (15 / 100) * true_count
+mf = int(mf)
+mf_count = 0
+print(mf)
+
+# make some local insulin flip bits
+for i in range(0, mf):
+    rand = random.randrange(10, 190)    
+    local_response[rand] = (local.bit_flipping(local_response[rand][0]), local_response[rand][1])
+    false_alarm.append(local_response[rand])
+    false_count_zero = false_count_zero + 1
+
+
+print("true: ", true_count)
+print("false: ", false_count_zero)
+print("total: ", true_count + false_count_zero)

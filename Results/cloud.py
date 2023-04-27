@@ -1,6 +1,7 @@
 import csv
 import sys
 import logging as log
+import struct
 from optparse import OptionParser
 
 # default patient. adult average parameters taken from the PADOVA paper page 31
@@ -16,7 +17,7 @@ k = 0
 patient = PatientInfo()
 
 # open csv file
-filename = open("Patients/Patient2.csv", "r")                          
+filename = open("Patients/Patient10.csv", "r")                          
 
 data_str = []
 data_flt = []
@@ -35,7 +36,7 @@ for row in data_str:
 def get_insulin(carbohydrate, current_glucose, patient):
 
     # if glucose is outside of theshold, true alarm
-    if current_glucose > 130 or current_glucose < 80:
+    if current_glucose > 180 or current_glucose < 70:
         true_alarm = 1
         bolus = ((carbohydrate / patient.carbohydrate_ratio) + (current_glucose - patient.target_glucose) / patient.correction_factor)
     # else if within theshold, corrupt a reading every 20 iterations
